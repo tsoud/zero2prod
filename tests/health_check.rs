@@ -16,9 +16,6 @@ async fn spawn_app() -> TestApp {
     let port = listener.local_addr().unwrap().port();
     let mut configuration = get_configuration().expect("Failed to get configuration.");
     configuration.database.database_name = Uuid::new_v4().to_string();
-    // let pool = PgPool::connect(&configuration.database.connection_string())
-    //     .await
-    //     .expect("Couldn't connect to Postgres.");
     let pool = configure_database(&configuration.database).await;
     let server = run(listener, pool.clone()).expect("Failed to bind address");
 
