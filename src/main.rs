@@ -1,4 +1,3 @@
-// use env_logger::Env;
 use sqlx::PgPool;
 use std::net::TcpListener;
 
@@ -8,7 +7,8 @@ use zero2prod::telemetry::{get_tracing_subscriber, init_tracing_subscriber};
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    let app_tracing_subscriber = get_tracing_subscriber("zero2prod".into(), "info".into());
+    let app_tracing_subscriber =
+        get_tracing_subscriber("zero2prod".into(), "info".into(), std::io::stdout);
     init_tracing_subscriber(app_tracing_subscriber);
 
     let configuration = get_configuration().expect("Failed to read configuration.");

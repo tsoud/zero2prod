@@ -1,4 +1,5 @@
 use std::net::TcpListener;
+use std::sync::LazyLock;
 
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
@@ -12,9 +13,22 @@ pub struct TestApp {
     pub db_pool: PgPool,
 }
 
+static APP_TRACER: LazyLock<()> = LazyLock::new(|| {
+    let default_filter_level = "info".to_string();
+    let app_subscriber_name = "test".to_string();
+    if std::env::var("TEST_LOG").is_ok() {
+        let app_tracer =
+            get_tracing_subscriber(app_subscriber_name, default_filter_level, std::io::stdout);
+        init_tracing_subscriber(app_tracer);
+    } else {
+        let app_tracer =
+            get_tracing_subscriber(app_subscriber_name, default_filter_level, std::io::sink);
+        init_tracing_subscriber(app_tracer);
+    };
+});
+
 async fn spawn_app() -> TestApp {
-    let app_tracer = get_tracing_subscriber("test".into(), "debug".into());
-    init_tracing_subscriber(app_tracer);
+    LazyLock::force(&APP_TRACER);
 
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     let port = listener.local_addr().unwrap().port();
