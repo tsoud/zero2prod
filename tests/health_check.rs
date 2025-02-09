@@ -75,7 +75,6 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
 
 #[tokio::test]
 async fn health_check_works() {
-    // let test_app = spawn_app().await;
     let test_app = spawn_app().await;
     let client = reqwest::Client::new();
 
