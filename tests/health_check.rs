@@ -5,6 +5,7 @@ use uuid::Uuid;
 
 use zero2prod::configuration::{get_configuration, DatabaseSettings};
 use zero2prod::startup::run;
+use zero2prod::telemetry::{get_tracing_subscriber, init_tracing_subscriber};
 
 pub struct TestApp {
     pub address: String,
@@ -12,18 +13,19 @@ pub struct TestApp {
 }
 
 async fn spawn_app() -> TestApp {
+    let app_tracer = get_tracing_subscriber("test".into(), "debug".into());
+    init_tracing_subscriber(app_tracer);
+
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     let port = listener.local_addr().unwrap().port();
+    let address = format!("http://127.0.0.1:{}", port);
     let mut configuration = get_configuration().expect("Failed to get configuration.");
     configuration.database.database_name = Uuid::new_v4().to_string();
-    let pool = configure_database(&configuration.database).await;
-    let server = run(listener, pool.clone()).expect("Failed to bind address");
+    let db_pool = configure_database(&configuration.database).await;
+    let server = run(listener, db_pool.clone()).expect("Failed to bind address");
 
     let _ = tokio::spawn(server);
-    TestApp {
-        address: format!("http://127.0.0.1:{}", port),
-        db_pool: pool,
-    }
+    TestApp { address, db_pool }
 }
 
 pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
