@@ -1,4 +1,4 @@
 .idea/*
 /target
 .zed/*
-configuration.yaml
+#configuration.yaml
