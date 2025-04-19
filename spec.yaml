@@ -42,6 +42,5 @@ envs:
 
 databases:
   - name: newsletter
-    engine: PG
-    version: "16"
-    production: false
+    production: true
+    cluster_name: zero2prod-db
